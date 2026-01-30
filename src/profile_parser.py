@@ -27,8 +27,8 @@ def parse_candidate_intro(message: str) -> Dict[str, Any]:
     
     # Extract name patterns
     name_patterns = [
-        r"(?:Я|I'm|I am|Меня зовут|My name is)\s+([А-Яа-яЁёA-Za-z]+)",
-        r"^(?:Привет|Hi|Hello)[.\s!]*(?:Я|I'm|I am)?\s+([А-Яа-яЁёA-Za-z]+)",
+        r"(?:Я|I'm|I am|Меня зовут|My name is)\s+([А-Яа-яЁёA-Za-z]+(?:\s+[А-Яа-яЁёA-Za-z]+)*)",
+        r"^(?:Привет|Hi|Hello)[.\s!]*(?:Я|I'm|I am)?\s+([А-Яа-яЁёA-Za-z]+(?:\s+[А-Яа-яЁёA-Za-z]+)*)",
     ]
     for pattern in name_patterns:
         match = re.search(pattern, message, re.IGNORECASE)

@@ -12,7 +12,6 @@ class TurnLog(BaseModel):
 
 class InterviewSession(BaseModel):
     participant_name: str
-    date: str
     turns: List[TurnLog] = Field(default_factory=list)
     final_feedback: Optional[str] = None
 
@@ -25,8 +24,7 @@ class SessionLogger:
     def _start_new_session_if_needed(self):
         # Always start fresh for a new run
         self.session = InterviewSession(
-            participant_name="Candidate", 
-            date=datetime.now().isoformat()
+            participant_name="Candidate"
         )
 
     def start_session(self, participant_name: str):
