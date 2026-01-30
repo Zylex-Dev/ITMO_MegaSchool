@@ -1,8 +1,5 @@
-import json
-import os
-from datetime import datetime
-from typing import List, Dict, Any, Optional
 from pydantic import BaseModel, Field
+
 
 class TurnLog(BaseModel):
     turn_id: int
@@ -10,22 +7,21 @@ class TurnLog(BaseModel):
     user_message: str
     internal_thoughts: str
 
+
 class InterviewSession(BaseModel):
     participant_name: str
-    turns: List[TurnLog] = Field(default_factory=list)
-    final_feedback: Optional[str] = None
+    turns: list[TurnLog] = Field(default_factory=list)
+    final_feedback: str | None = None
+
 
 class SessionLogger:
     def __init__(self, filename: str = "interview_log.json"):
         self.filename = filename
-        self.session: Optional[InterviewSession] = None
+        self.session: InterviewSession | None = None
         self._start_new_session_if_needed()
 
     def _start_new_session_if_needed(self):
-        # Always start fresh for a new run
-        self.session = InterviewSession(
-            participant_name="Candidate"
-        )
+        self.session = InterviewSession(participant_name="Candidate")
 
     def start_session(self, participant_name: str):
         self.session.participant_name = participant_name
@@ -36,7 +32,7 @@ class SessionLogger:
             turn_id=turn_id,
             agent_visible_message=agent_msg,
             user_message=user_msg,
-            internal_thoughts=thoughts
+            internal_thoughts=thoughts,
         )
         self.session.turns.append(turn)
         self.save_log()
@@ -46,5 +42,5 @@ class SessionLogger:
         self.save_log()
 
     def save_log(self):
-        with open(self.filename, 'w', encoding='utf-8') as f:
+        with open(self.filename, "w", encoding="utf-8") as f:
             f.write(self.session.model_dump_json(indent=2, exclude_none=True))

@@ -1,21 +1,21 @@
-from typing import List, Dict, Any, TypedDict, Annotated, Optional
+from typing import Any, TypedDict, Annotated
 import operator
 from langchain_core.messages import BaseMessage
+
 
 class InterviewState(TypedDict):
     """
     Global state for the interview process.
     """
-    messages: Annotated[List[BaseMessage], operator.add]
-    candidate_profile: Dict[str, Any]  # Skills, confidence, gaps, name, position
-    interview_stage: str # 'intro', 'main', 'code', 'behavioral', 'closing'
-    current_topic: Optional[str]
-    difficulty_level: int # 1-5
-    turn_count: int
-    
-    # Analysis outputs
-    tech_analysis: Optional[Dict[str, Any]]
-    behavioral_analysis: Optional[Dict[str, Any]]
-    strategy_directive: Optional[str]
-    strategy_reasoning: Optional[str]  # Reasoning behind strategy decisions
 
+    messages: Annotated[list[BaseMessage], operator.add]
+    candidate_profile: dict[str, Any]  # Skills, confidence, gaps, name, position
+    interview_stage: str  # 'intro', 'main', 'code', 'behavioral', 'closing'
+    current_topic: str | None
+    difficulty_level: int  # 1-5
+    turn_count: int
+
+    tech_analysis: dict[str, Any] | None
+    behavioral_analysis: dict[str, Any] | None
+    strategy_directive: str | None
+    strategy_reasoning: str | None  # Reasoning behind strategy decisions
