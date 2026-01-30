@@ -37,13 +37,8 @@ workflow.add_node("strategy", node_strategy)
 workflow.add_node("interviewer", node_interviewer)
 
 # Define edges
-# Parallel execution for evaluators
+# Sequential execution: Tech -> Behavioral -> Strategy -> Interviewer
 workflow.set_entry_point("technical") 
-workflow.add_edge("technical", "behavioral") # Sequential for simplicity in this version, or use parallel branching
-# Ideally: Start -> [Tech, Behav] -> Strategy. 
-# In LangGraph, we can do Start -> Tech, Start -> Behav. Then both -> Strategy.
-# But we need a synchronization point. Strategy needs both.
-# Let's keep it sequential for safety: Tech -> Behavioral -> Strategy -> Interviewer.
 
 workflow.add_edge("technical", "behavioral")
 workflow.add_edge("behavioral", "strategy")

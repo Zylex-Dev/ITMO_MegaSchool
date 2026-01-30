@@ -11,7 +11,8 @@ class BehavioralEvaluation(BaseModel):
     confidence_score: int = Field(description="1-10 score on confidence")
     honesty_flag: str = Field(description="'honest', 'evasive', or 'deceptive'")
     engagement_level: str = Field(description="'high', 'medium', 'low'")
-    off_topic_attempt: bool = Field(description="Is the candidate trying to change the subject?")
+    off_topic_attempt: bool = Field(description="Is the candidate trying to derail the interview with irrelevant topics?")
+    candidate_question: bool = Field(description="Is the candidate asking a legitimate question about the job/company?")
     observation: str = Field(description="Brief behavioral observation")
 
 class BehavioralAnalyst:
@@ -25,7 +26,17 @@ class BehavioralAnalyst:
         
         - Assess confidence (Are they hedging? "Maybe", "I think").
         - Assess honesty (Are they admitting ignorance or bluffing?).
-        - Check for "Off-topic" maneuvers (Trying to change subject to something irrelevant).
+        - Check for "Off-topic" attempts.
+        
+        IMPORTANT DISTINCTION for off_topic_attempt:
+        - Off-topic = TRUE only for irrelevant topics like weather, politics, personal life, jokes, etc.
+        - Off-topic = FALSE for legitimate candidate questions about:
+          * The job role, responsibilities, tasks
+          * The company, team, projects
+          * Technical stack, methodologies used
+          * Onboarding, trial period expectations
+        
+        These are NORMAL parts of an interview! Set candidate_question=true when the candidate asks about the job.
         
         History:
         {history}
@@ -47,7 +58,8 @@ class BehavioralAnalyst:
             return {"behavioral_analysis": None}
             
         last_user_msg = messages[-1].content
-        history_str = "\n".join([f"{m.type}: {m.content}" for m in messages[-3:]])
+        # Use 6 messages (3 full turns) for better context awareness
+        history_str = "\n".join([f"{m.type}: {m.content}" for m in messages[-6:]])
         
         try:
             result = self.chain.invoke({
@@ -57,3 +69,4 @@ class BehavioralAnalyst:
             return {"behavioral_analysis": result}
         except Exception as e:
             return {"behavioral_analysis": {"error": str(e), "observation": "Failed to analyze"}}
+

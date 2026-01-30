@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 from src.state import InterviewState
 
 class StrategyDecision(BaseModel):
-    next_step: Literal["ask_question", "dig_deeper", "change_topic", "hint", "wrap_up"] = Field(description="The next move for the interviewer")
+    next_step: Literal["ask_question", "dig_deeper", "change_topic", "hint", "wrap_up", "answer_candidate_question"] = Field(description="The next move for the interviewer")
     topic: str = Field(description="The topic to focus on next")
     difficulty_change: int = Field(description="-1 (easier), 0 (same), 1 (harder)")
     directive: str = Field(description="Specific instructions for the Interviewer agent on what to ask/say")
@@ -27,14 +27,35 @@ class StrategyDirector:
         - Current Topic: {current_topic}
         - Turns: {turn_count}
         
-        Rules:
-        1. If candidate is correct & confident -> Increase difficulty or Change Topic.
-        2. If candidate is struggling -> Hint or Decrease difficulty.
-        3. If Hallucination detected -> DIG DEEPER and excessive skepticism.
-        4. If Off-topic -> Gently bring back to track.
-        5. If turns > 10 -> WRAP UP.
+        DECISION RULES (in priority order):
         
-        CRITICAL: Output ONLY valid JSON.
+        1. CANDIDATE QUESTIONS: If behavioral_analysis shows candidate_question=True
+           → Set next_step to "answer_candidate_question"
+           → directive: "Answer the candidate's question about [topic], then ask a follow-up technical question"
+           → This is NOT off-topic! Candidates asking about the job is NORMAL.
+        
+        2. HALLUCINATION DETECTED: If technical_analysis shows hallucination_detected=True
+           → Set next_step to "dig_deeper"
+           → directive: "Politely correct the false claim about [topic]. Explain the truth. Ask a follow-up to verify understanding."
+           → difficulty_change: 0 (don't punish, just verify)
+        
+        3. CORRECT & CONFIDENT: If answer is correct and confidence is high
+           → next_step: "ask_question" or "change_topic"
+           → difficulty_change: +1 (increase challenge)
+        
+        4. STRUGGLING: If answer is wrong or candidate is uncertain
+           → next_step: "hint" or "ask_question" with simpler version
+           → difficulty_change: -1
+        
+        5. OFF-TOPIC (actual derailing like weather/politics):
+           → next_step: "ask_question"  
+           → directive: "Gently redirect back to the interview topic"
+        
+        6. WRAP UP: If turns > 10
+           → next_step: "wrap_up"
+           → directive: "Thank the candidate and conclude the interview"
+        
+        CRITICAL: Output ONLY valid JSON matching the schema.
         """
         
         self.prompt = ChatPromptTemplate.from_messages([
@@ -47,6 +68,7 @@ class StrategyDirector:
     def decide(self, state: InterviewState) -> Dict[str, Any]:
         tech = state.get("tech_analysis", {})
         behav = state.get("behavioral_analysis", {})
+        current_difficulty = state.get("difficulty_level", 1)
         
         try:
             result = self.chain.invoke({
@@ -56,17 +78,23 @@ class StrategyDirector:
                 "turn_count": state.get("turn_count", 0)
             })
             
-            # Update state with the decision
+            # Calculate new difficulty level (clamped to 1-5)
+            difficulty_change = result.get("difficulty_change", 0)
+            new_difficulty = max(1, min(5, current_difficulty + difficulty_change))
+            
+            # Update state with the decision including reasoning for logging
             return {
                 "strategy_directive": result["directive"],
                 "current_topic": result["topic"],
-                "difficulty_change": result["difficulty_change"] 
+                "difficulty_level": new_difficulty,
+                "strategy_reasoning": result.get("reasoning", "N/A")
             }
         except Exception as e:
             # Return a valid default that forces progress rather than looping
             return {
                 "strategy_directive": "Ask the next technical question based on candidate profile. Do not repeat introduction.", 
                 "current_topic": "General Technical",
-                "difficulty_change": 0,
+                "difficulty_level": current_difficulty,  # Keep current level on error
+                "strategy_reasoning": f"Error occurred: {str(e)}",
                 "error": str(e)
             }

@@ -11,6 +11,7 @@ class TechEvaluation(BaseModel):
     is_correct: bool = Field(description="Is the candidate's answer technically correct?")
     confidence_score: float = Field(description="0.0 to 1.0 confidence in the answer correctness")
     hallucination_detected: bool = Field(description="Does the answer contain invented facts?")
+    factual_errors: list[str] = Field(description="List of specific factual errors in the answer")
     missing_concepts: list[str] = Field(description="Key concepts that were missed")
     topics_covered: list[str] = Field(description="Technical topics discussed in this turn")
     reasoning: str = Field(description="Brief explanation of the evaluation")
@@ -54,7 +55,8 @@ class TechnicalEvaluator:
         # In a real graph, we'd filter for the last HUMAN message
         
         # Format history briefly
-        history_str = "\n".join([f"{m.type}: {m.content}" for m in messages[-3:]])
+        # Use 6 messages (3 full turns) for better context awareness
+        history_str = "\n".join([f"{m.type}: {m.content}" for m in messages[-6:]])
         
         try:
             result = self.chain.invoke({
