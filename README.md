@@ -67,9 +67,7 @@ streamlit run src/app.py
 2.  **Strategy Node**: Агрегирует аналитику и обновляет `interview_stage` и `difficulty_level`.
 3.  **Interviewer Node**: Генерирует финальное сообщение, опираясь на полную историю и директиву стратега.
 
----
-
-## Система логирования и Beautification
+### Система логирования и Beautification
 
 Система создает два типа отчетов:
 - **`interview_log.json`**: Полный технический лог сессии.
@@ -80,6 +78,7 @@ streamlit run src/app.py
 ---
 
 ## Структура проекта
+
 - `src/agents/` — Логика "мышления" экспертов.
 - `src/graph.py` — Описание логики переходов и связей между агентами.
 - `src/state.py` — Структура общей памяти (State).
