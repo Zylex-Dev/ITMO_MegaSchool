@@ -16,6 +16,7 @@ from src.graph import app as graph_app
 from src.logger import SessionLogger
 from src.agents.feedback import FeedbackGenerator
 from src.profile_parser import update_profile_from_message
+from src.utils.formatter import beautify_log_file
 
 # Page Config
 st.set_page_config(page_title="AI Интервьюер", layout="wide")
@@ -166,6 +167,7 @@ with st.sidebar:
             
             if st.session_state.final_report:
                 st.session_state.logger.log_feedback(json.dumps(st.session_state.final_report, indent=2, ensure_ascii=False))
+                beautify_log_file(st.session_state.logger.filename)
         st.rerun()
 
 # Отображение итогового отчета
@@ -305,6 +307,7 @@ if prompt := st.chat_input("Ваш ответ..."):
             
             if st.session_state.final_report:
                 st.session_state.logger.log_feedback(json.dumps(st.session_state.final_report, indent=2, ensure_ascii=False))
+                beautify_log_file(st.session_state.logger.filename)
         st.rerun()
     else:
         # Добавляем в состояние LangGraph

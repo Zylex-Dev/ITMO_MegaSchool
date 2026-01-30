@@ -15,6 +15,7 @@ from src.graph import app
 from src.logger import SessionLogger
 from src.agents.feedback import FeedbackGenerator
 from src.profile_parser import parse_candidate_intro, update_profile_from_message
+from src.utils.formatter import beautify_log_file
 
 # Stop commands detection
 STOP_COMMANDS = ["exit", "quit", "stop", "стоп интервью", "стоп игра", "завершить", "давай фидбэк", "давай фидбек"]
@@ -106,6 +107,10 @@ def main():
                 
                 # Log feedback
                 logger.log_feedback(json.dumps(feedback_report, indent=2, ensure_ascii=False))
+                
+                # Beautify log file
+                beautify_log_file(log_path)
+                
                 print("\n[System]: Interview session completed. Thank you!")
                 break
             
